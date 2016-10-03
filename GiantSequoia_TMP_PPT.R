@@ -11,7 +11,7 @@ species_number = 212
 
 fia_db = readRDS(file ='fia_db_212.rds')
 source('clim_extract.R')
-tmpppt = extract_tmpppt (fia_db, p='C:/Users/Olga Rumyantseva/Documents/R Files/Data') 
+tmpppt = extract_tmpppt (fia_db, p='C:/Users/Olga Rumyantseva/Documents/R Files/Data/') 
 
 saveRDS(tmpppt, file = paste0(data_path, '/tmpppt_',species_number,'.rds'))
 #tmpppt = readRDS(file ='tmpppt_98.rds') 
