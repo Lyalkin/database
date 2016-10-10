@@ -12,8 +12,8 @@ species_number = 212
 
 # extraction of all the plots in the FIA DB and computation of the relative BA of the species
 # source('fia_extract.R')
-# fia_db = fia_extract(p=data_path, species_number) ### RUN THIS CODE TO MAKE SURE THAT IT WORKS!! :)
-# saveRDS(fia_db, file = paste0(code_path, '/fia_db_', species_number, '.rds'))
+# fia_db = fia_extract(p=data_path, species_number)
+#saveRDS(fia_db, file = paste0(code_path, '/fia_db_', species_number, '.rds'))
 fia_db = readRDS(file = paste0(code_path, '/fia_db_', species_number, '.rds'))
 
 # Extraction of the climatic variables from Worldclim
@@ -21,7 +21,6 @@ fia_db = readRDS(file = paste0(code_path, '/fia_db_', species_number, '.rds'))
 #tmpppt = extract_tmpppt (fia_db, p=data_path) 
 #saveRDS(tmpppt, file = paste0(code_path, '/tmpppt.rds'))
 tmpppt = readRDS(file = paste0(code_path, '/tmpppt.rds'))
-
 
 
 
@@ -44,7 +43,9 @@ plot(tmpppt_df$Bio1s[plots_with_species], tmpppt_df$Bio12s[plots_with_species], 
 breaks_tmp = seq(from = min(tmpppt_df$Bio1s, na.rm=T),
                  to = max(tmpppt_df$Bio1s, na.rm=T),
                  le=11)
+
 Ann_Mean_Temp_cut = cut(tmpppt_df$Bio1s, breaks = breaks_tmp, labels = FALSE)
+
 
 breaks_ppt = seq(from = min(tmpppt_df$Bio12s, na.rm=T),
                  to = max(tmpppt_df$Bio12s, na.rm=T),
@@ -58,20 +59,23 @@ plot(Ann_Mean_Temp_cut[plots_with_species], Ann_Precip_cut[plots_with_species], 
 
 par(mfrow=c(1,1))
 
-## Todo: write a function that cuts the climatic data
-breaks_and_bins = extract_breaks_bins(tmpppt_df)
-breaks_bio = breaks_and_bins$breaks_bio
-bins_bio = breaks_and_bins$bins_bio
+## Now cut (make bins) for all 19 climatic variables
+source('extract_breaks_bins.R')
+breaks = extract_breaks(tmpppt_df)
+bins = extract_bins(tmpppt_df)
 
-plot(bins_bio[[1]], bins_bio[[12]], type = "p",
+
+plot(bins[[1]], bins[[12]], type = "p",
      xlab="Annual Mean Temperature ", ylab="Annual Precipitation",
      xlim=c(0, 11), ylim=c(0, 11), cex=0.5)
 
-plot(bins_bio[[3]], bins_bio[[15]], type = "p",
+plot(bins[[3]], bins[[5]], type = "p",
      xlab="clim var 3 ", ylab="clim var 15",
      xlim=c(0, 11), ylim=c(0, 11), cex=0.5)
 
 
+
+#model with no interaction----------------------------------------------------------
 
 tmp_ppt_together = cbind(Ann_Mean_Temp_cut_species, Ann_Precip_cut_species)
 tmp_ppt_together_df = as.data.frame(tmp_ppt_together)

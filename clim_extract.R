@@ -15,30 +15,30 @@ extract_tmpppt = function(fia_db, p)
 {
   require('raster')
   require('rgdal')
-  #Biojs = raster(paste0(p,'WORLDCLIM/bio/bio_j.bil'))
+  #Bio_s = raster(paste0(p,'WORLDCLIM/bio/bio_j.bil'))
   
   # Load the raster data from the Worldim layers
-  Biojs = list()
+  Bio_s = list()
   for (j in 1:19){
-    Biojs[[j]] = raster(paste0(p,'WORLDCLIM/bio_',j,'.bil'))
+    Bio_s[[j]] = raster(paste0(p,'WORLDCLIM/bio_',j,'.bil'))
   }
   
   # match the coordinate system of the FIA to these rasters
   coords = cbind(fia_db$LON,
                  fia_db$LAT)
   coords = SpatialPoints(coords, proj4string = CRS("+proj=longlat +datum=NAD83"))
-  coords = spTransform(coords, crs(Biojs[[1]]))
+  coords = spTransform(coords, crs(Bio_s[[1]]))
 
   # Query the value of the Worldclim layers at the FIA locations
   for (j in 1:19){
-    Biojs[[j]] = extract(Biojs[[j]],coords)
+    Bio_s[[j]] = extract(Bio_s[[j]],coords)
   }
   
   #tmps = extract(tmps,coords)
   #ppts = extract(ppts,coords)
   #pptd = extract(pptd, coords)
-  names(Biojs) = paste0('Bio', 1:19, 's')
-  return(Biojs)
+  names(Bio_s) = paste0('Bio', 1:19, 's')
+  return(Bio_s)
 }
 
 # shows the tolerance of FIA stands in the climatic space
