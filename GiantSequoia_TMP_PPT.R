@@ -77,43 +77,42 @@ plot(bins[[3]], bins[[5]], type = "p",
 
 #model with no interaction----------------------------------------------------------
 
-tmp_ppt_together = cbind(Ann_Mean_Temp_cut_species, Ann_Precip_cut_species)
-tmp_ppt_together_df = as.data.frame(tmp_ppt_together)
-summary(tmp_ppt_together_df)
-u = unique(tmp_ppt_together_df)
-u1 = na.omit(u)
-print(u1)
-dim(u1)
+#clim_vars_matrix is a matrix with 2 columns - clim variables bins
+var_cbind = cbind(bins[[1]], bins[[12]])
+var_cbind_df = as.data.frame(var_cbind)
+var_cbind_df_unique = unique(var_cbind_df)
+clim_vars_matrix = na.omit(var_cbind_df_unique)
+dim(clim_vars_matrix)
 
-tmp_ppt_no_interact = matrix(0, 10, 10)
 
-for (i in 1:67) 
-{tmp_ppt_no_interact[u1[i,1], u1[i,2]] = 1}
-print(tmp_ppt_no_interact)
+#vars is a matrix having vars[i,j]=1 if clim_vars_matrix has a row "i j" 
+#and                     vars[i,j]=0 otherwise
 
-a = tmp_ppt_no_interact
-print(a)
+vars = matrix(0, 10, 10)
+for (i in 1:dim(clim_vars_matrix)[1])
+{vars[clim_vars_matrix[i,1],clim_vars_matrix[i,2]] = 1}
+print(vars)
 
-for (i in 1:9)
+#vars_no_interact obtained from vars matrix making it look convex
+for (i in 1:10)
 {
-  for (j in 10:2) 
+  for (j in 1:10)
   {
-    if (a[i,j-1] == 0 & a[i,j] == 1 & a[i+1,j-1] == 1 & a[i+1,j] == 1)  a[i,j-1] = 1
-    if (a[i,j-1] == 1 & a[i,j] == 1 & a[i+1,j-1] == 0 & a[i+1,j] == 1)  a[i,j-1] = 1
-    } 
+    if (vars[i,j] == 0) 
+    if (vars[i,1]+vars[i,2]+vars[i,3]+vars[i,4]+vars[i,5]+
+        vars[i,6]+vars[i,7]+vars[i,8]+vars[i,9]+vars[i,10] > 0) vars[i,j] = 1
+    
+    if (vars[1,j]+vars[2,j]+vars[3,j]+vars[4,j]+vars[5,j]+
+        vars[6,j]+vars[7,j]+vars[8,j]+vars[9,j]+vars[10,j] > 0) vars[i,j] = 1
+      
+    }
 }
-print(a)
+print(vars)
 
 
-for (i in 1:9)
-{
-  for (j in 1:9) 
-  {
-    if (a[i,j] == 1 & a[i,j+1] == 1 & a[i+1,j] == 1 & a[i+1,j+1] == 0)  a[i+1,j+1] = 1
-    if (a[i,j] == 1 & a[i,j+1] == 0 & a[i+1,j] == 1 & a[i+1,j+1] == 1)  a[i,j+1] = 1
-  }
-}
-print(a)
+
+
+
 
 
 
