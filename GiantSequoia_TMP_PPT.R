@@ -59,7 +59,7 @@ plot(Ann_Mean_Temp_cut[plots_with_species], Ann_Precip_cut[plots_with_species], 
 
 par(mfrow=c(1,1))
 
-## Now cut (make bins) for all 19 climatic variables
+## Now cut (make bins) for all NCOL(tmpppt_df) = 19 climatic variables
 source('extract_breaks_bins.R')
 breaks = extract_breaks(tmpppt_df)
 bins = extract_bins(tmpppt_df)
@@ -83,6 +83,7 @@ var_cbind_df = as.data.frame(var_cbind)
 var_cbind_df_unique = unique(var_cbind_df)
 clim_vars_matrix = na.omit(var_cbind_df_unique)
 dim(clim_vars_matrix)
+head(clim_vars_matrix)
 
 
 #vars is a matrix having vars[i,j]=1 if clim_vars_matrix has a row "i j" 
@@ -93,23 +94,22 @@ for (i in 1:dim(clim_vars_matrix)[1])
 {vars[clim_vars_matrix[i,1],clim_vars_matrix[i,2]] = 1}
 print(vars)
 
-#vars_no_interact obtained from vars matrix making it look convex
+#vars_no_interact obtained from vars matrix
 for (i in 1:10)
 {
   for (j in 1:10)
   {
     if (vars[i,j] == 0) 
-    if (vars[i,1]+vars[i,2]+vars[i,3]+vars[i,4]+vars[i,5]+
+    {
+      if (vars[i,1]+vars[i,2]+vars[i,3]+vars[i,4]+vars[i,5]+
         vars[i,6]+vars[i,7]+vars[i,8]+vars[i,9]+vars[i,10] > 0) vars[i,j] = 1
     
-    if (vars[1,j]+vars[2,j]+vars[3,j]+vars[4,j]+vars[5,j]+
+      if (vars[1,j]+vars[2,j]+vars[3,j]+vars[4,j]+vars[5,j]+
         vars[6,j]+vars[7,j]+vars[8,j]+vars[9,j]+vars[10,j] > 0) vars[i,j] = 1
-      
     }
+  }
 }
 print(vars)
-
-
 
 
 
