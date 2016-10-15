@@ -65,6 +65,22 @@ breaks = extract_breaks(tmpppt_df)
 bins = extract_bins(tmpppt_df)
 
 
+#tmppt_df_binned is tmppt_df where each column is binned
+tmppt_df_binned = as.data.frame(bins[[1]])
+names(tmppt_df_binned) = (paste0(names(tmpppt_df)[1],'_bin',collapse = ''))
+for (i in 2:19)
+{
+a = as.data.frame(bins[[i]])
+names(a) = (paste0(names(tmpppt_df)[i],'_bin',collapse = ''))
+tmppt_df_binned = cbind (tmppt_df_binned, a)
+}
+head(tmppt_df_binned)
+dim(tmppt_df_binned)
+
+
+
+
+
 plot(bins[[1]], bins[[12]], type = "p",
      xlab="Annual Mean Temperature ", ylab="Annual Precipitation",
      xlim=c(0, 11), ylim=c(0, 11), cex=0.5)
