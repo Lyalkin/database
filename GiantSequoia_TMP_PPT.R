@@ -68,7 +68,7 @@ bins = extract_bins(tmpppt_df)
 #tmppt_df_binned is tmppt_df where each column is binned
 tmppt_df_binned = as.data.frame(bins[[1]])
 names(tmppt_df_binned) = (paste0(names(tmpppt_df)[1],'_bin',collapse = ''))
-for (i in 2:19)
+for (i in 2:NCOL(tmpppt_df))
 {
 a = as.data.frame(bins[[i]])
 names(a) = (paste0(names(tmpppt_df)[i],'_bin',collapse = ''))

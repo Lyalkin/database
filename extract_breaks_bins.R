@@ -4,7 +4,7 @@ extract_breaks = function(tmpppt_df)
 {
   breaks = list()
   
-  for (j in 1:19){
+  for (j in 1:NCOL(tmpppt_df)){
     
     
     breaks[[j]] = seq(from = min(tmpppt_df[,j], na.rm=T),
@@ -19,7 +19,7 @@ extract_bins = function(tmpppt_df)
 {
   bins = list()
   
-  for (j in 1:19){
+  for (j in 1:NCOL(tmpppt_df)){
     
     
     bins[[j]] = cut(tmpppt_df[,j], breaks = breaks[[j]], labels = FALSE)
