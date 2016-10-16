@@ -15,14 +15,14 @@ extract_breaks = function(tmpppt_df)
 }
 
 #makes a list of 19 vectors-bins(clim. variables cuts) for each of 19 clim. variables
-extract_bins = function(tmpppt_df)
+extract_bins = function(tmpppt_df, breaks)
 {
   bins = list()
   
   for (j in 1:NCOL(tmpppt_df)){
     
     
-    bins[[j]] = cut(tmpppt_df[,j], breaks = breaks[[j]], labels = FALSE)
+    bins[[j]] = cut(tmpppt_df[,j], breaks = breaks[[j]], labels = FALSE, include.lowest = TRUE)
   }
   return(bins)
 }
