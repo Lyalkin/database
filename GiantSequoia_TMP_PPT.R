@@ -163,39 +163,19 @@ plots_where_giant_sequoia_can_be = which(p > 0)
 potential_basal_area = sum(fia_db$BASAL.AREA[plots_where_giant_sequoia_can_be], na.rm = TRUE)
 #potential_basal_area = 746160.4
 
+#the relative size of the realized area over the size of the potential area:
+rel_size = total_basal_area/potential_basal_area*100
+print(rel_size)
+
+
 
 #plot together Rel Bas Area and Potential Area - no interactions of Tmp-PPt for Giant Seq
 require('maps')
-map('usa')
 
 par(mfrow=c(1,2))
-
+map('usa')
 points(x=fia_db$LON[plots_with_giant_sequoia], y=fia_db$LAT[plots_with_giant_sequoia])
 
-
+map('usa')
 points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
 
-par(mfrow=c(1,1))
-
-
-points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-  
-  
-  
