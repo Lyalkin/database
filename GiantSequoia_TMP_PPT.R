@@ -7,7 +7,7 @@ require('raster')
 require('sp')
 require('rgdal')
 
-# 212 is for Giant Sequoias
+# 212 is for Giant Sequoia
 species_number = 212
 
 # extraction of all the plots in the FIA DB and computation of the relative BA of the species
@@ -59,10 +59,12 @@ plot(Ann_Mean_Temp_cut[plots_with_species], Ann_Precip_cut[plots_with_species], 
 
 par(mfrow=c(1,1))
 
-## Now cut (make bins) for all NCOL(tmpppt_df) = 19 climatic variables
+
+
+# Now cut (make bins) for all NCOL(tmpppt_df) = 19 climatic variables
 source('extract_breaks_bins.R')
 breaks = extract_breaks(tmpppt_df)
-bins = extract_bins(tmpppt_df)
+bins = extract_bins(tmpppt_df, breaks)
 
 
 #tmppt_df_binned is tmppt_df where each column is binned
@@ -80,7 +82,7 @@ dim(tmppt_df_binned)
 
 
 
-
+# we can plot clim variables
 plot(bins[[1]], bins[[12]], type = "p",
      xlab="Annual Mean Temperature ", ylab="Annual Precipitation",
      xlim=c(0, 11), ylim=c(0, 11), cex=0.5)
@@ -91,13 +93,11 @@ plot(bins[[3]], bins[[5]], type = "p",
 
 
 
-#model with no interaction----------------------------------------------------------
+#model with no interaction
 
-#clim_vars_matrix is a matrix with 2 columns - clim variables bins
-var_cbind = cbind(bins[[1]], bins[[12]])
-var_cbind_df = as.data.frame(var_cbind)
-var_cbind_df_unique = unique(var_cbind_df)
-clim_vars_matrix = na.omit(var_cbind_df_unique)
+#clim_vars_matrix is a matrix with 2 columns from tmppt_df_binned, na omitted, duplicates omitted
+
+clim_vars_matrix = na.omit(unique(as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))))
 dim(clim_vars_matrix)
 head(clim_vars_matrix)
 
@@ -110,23 +110,49 @@ for (i in 1:dim(clim_vars_matrix)[1])
 {vars[clim_vars_matrix[i,1],clim_vars_matrix[i,2]] = 1}
 print(vars)
 
-#vars_no_interact obtained from vars matrix
+
+#vars_no_interact obtained from vars matrix making it 'looking convex'
+vars_no_interact = vars
 for (i in 1:10)
 {
   for (j in 1:10)
   {
-    if (vars[i,j] == 0) 
+    if (vars_no_interact[i,j] == 0) 
     {
-      if (vars[i,1]+vars[i,2]+vars[i,3]+vars[i,4]+vars[i,5]+
-        vars[i,6]+vars[i,7]+vars[i,8]+vars[i,9]+vars[i,10] > 0) vars[i,j] = 1
+      if (vars_no_interact[i,1]+vars_no_interact[i,2]+vars_no_interact[i,3]+
+          vars_no_interact[i,4]+vars_no_interact[i,5]+vars_no_interact[i,6]+
+          vars_no_interact[i,7]+vars_no_interact[i,8]+vars_no_interact[i,9]+
+          vars_no_interact[i,10] > 0) vars_no_interact[i,j] = 1
     
-      if (vars[1,j]+vars[2,j]+vars[3,j]+vars[4,j]+vars[5,j]+
-        vars[6,j]+vars[7,j]+vars[8,j]+vars[9,j]+vars[10,j] > 0) vars[i,j] = 1
+      if (vars_no_interact[1,j]+vars_no_interact[2,j]+vars_no_interact[3,j]+
+          vars_no_interact[4,j]+vars_no_interact[5,j]+vars_no_interact[6,j]+
+          vars_no_interact[7,j]+vars_no_interact[8,j]+vars_no_interact[9,j]+
+          vars_no_interact[10,j] > 0) vars_no_interact[i,j] = 1
     }
   }
 }
-print(vars)
+print(vars_no_interact)
 
+
+
+# p is a presence_absence vector for FIA plots if we consider model with no interactions
+
+d = dim(tmppt_df_binned)[1]
+p = vector(mode = "logical", length = d)  #d=754851, vector has FALSE components initially
+
+c = as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))
+
+for (i in 1:d) 
+{
+  a = c[i,1]
+  b = c[i,2]
+  if (is.na(a) == FALSE & is.na(b) == FALSE) {if (vars_no_interact[a,b] == 1) p[i] = TRUE}
+  else
+  {  
+    p[i] = TRUE
+  }
+}
+summary(p)
 
 
 
