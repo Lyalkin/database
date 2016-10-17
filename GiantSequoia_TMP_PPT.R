@@ -142,17 +142,16 @@ p = vector(mode = "logical", length = d)  #d=754851, vector has FALSE components
 
 c = as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))
 
+
+for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2]]}
+
+
 for (i in 1:d) 
 {
-  a = c[i,1]
-  b = c[i,2]
-  if (is.na(a) == FALSE & is.na(b) == FALSE) {if (vars_no_interact[a,b] == 1) p[i] = TRUE}
-  else
-  {  
-    p[i] = TRUE
-  }
+  if (is.na(p[i]) == TRUE) {p[i] = 0} 
 }
-summary(p)
+
+
 
 
 
