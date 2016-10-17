@@ -151,9 +151,34 @@ for (i in 1:d)
   if (is.na(p[i]) == TRUE) {p[i] = 0} 
 }
 
+# finding Relative Basal Area for Giant Sequoia
+plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
+total_basal_area = sum(fia_db$BASAL.AREA[plots_with_giant_sequoia])  #total_basal_area = 44.11497
 
 
+# finding Potential area for Giant Sequoia, the model without interactions
+p = as.data.frame(p)
+plots_where_giant_sequoia_can_be = which(p > 0)
 
+potential_basal_area = sum(fia_db$BASAL.AREA[plots_where_giant_sequoia_can_be], na.rm = TRUE)
+#potential_basal_area = 746160.4
+
+
+#plot together Rel Bas Area and Potential Area - no interactions of Tmp-PPt for Giant Seq
+require('maps')
+map('usa')
+
+par(mfrow=c(1,2))
+
+points(x=fia_db$LON[plots_with_giant_sequoia], y=fia_db$LAT[plots_with_giant_sequoia])
+
+
+points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
+
+par(mfrow=c(1,1))
+
+
+points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
 
 
 
