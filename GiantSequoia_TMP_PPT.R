@@ -67,17 +67,17 @@ breaks = extract_breaks(tmpppt_df)
 bins = extract_bins(tmpppt_df, breaks)
 
 
-#tmppt_df_binned is tmppt_df where each column is binned
-tmppt_df_binned = as.data.frame(bins[[1]])
-names(tmppt_df_binned) = (paste0(names(tmpppt_df)[1],'_bin',collapse = ''))
+#tmpppt_df_binned is tmpppt_df where each column is binned
+tmpppt_df_binned = as.data.frame(bins[[1]])
+names(tmpppt_df_binned) = (paste0(names(tmpppt_df)[1],'_bin',collapse = ''))
 for (i in 2:NCOL(tmpppt_df))
 {
 a = as.data.frame(bins[[i]])
 names(a) = (paste0(names(tmpppt_df)[i],'_bin',collapse = ''))
-tmppt_df_binned = cbind (tmppt_df_binned, a)
+tmpppt_df_binned = cbind (tmpppt_df_binned, a)
 }
-head(tmppt_df_binned)
-dim(tmppt_df_binned)
+head(tmpppt_df_binned)
+dim(tmpppt_df_binned)
 
 
 
@@ -93,11 +93,10 @@ plot(bins[[3]], bins[[5]], type = "p",
 
 
 
-#model with no interaction
 
 #tmp_ppt_sequoia has tmp, ppt binned for which giant sequoia exists
 plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
-tmp_ppt_sequoia = cbind(tmppt_df_binned[,1][plots_with_giant_sequoia], tmppt_df_binned[,12][plots_with_giant_sequoia])
+tmp_ppt_sequoia = cbind(tmpppt_df_binned[,1][plots_with_giant_sequoia], tmpppt_df_binned[,12][plots_with_giant_sequoia])
 tmp_ppt_sequoia = na.omit(unique(as.data.frame(tmp_ppt_sequoia)))
 dim(tmp_ppt_sequoia)
 #tmp_ppt_sequoia
@@ -161,10 +160,10 @@ print(vars_no_interact)
 
 # p is a presence_absence vector for FIA plots if we consider model with no interactions
 
-d = dim(tmppt_df_binned)[1]
+d = dim(tmpppt_df_binned)[1]
 p = vector(mode = "logical", length = d)  #d=754851 -number of fia plots, vector has FALSE components initially
 
-c = as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))
+c = as.data.frame(cbind(tmpppt_df_binned[,1], tmpppt_df_binned[,12]))
 
 for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2]]}
 
@@ -173,21 +172,41 @@ for (i in 1:d)
   if (is.na(p[i]) == TRUE) {p[i] = 0} 
 }
 
+# p2 is a presence_absence vector for FIA plots if we consider model with interactions
+
+p2 = vector(mode = "logical", length = d) # prediction of the model with interaction
+
+for (i in 1:d) {
+  
+  p2[i] = vars[c[i,1], c[i,2]]
+  
+  if (is.na(p2[i]) == TRUE) {
+    
+    p2[i] = 0
+    
+  }
+}
+
+potential_area_with_interactions = sum(p2)
+#potential_area_with_interactions = 120930
+
+# finding Potential area for Giant Sequoia (in how many fia plots Giant Sequoia can be, if we consider
+#the model without interactions)
+
+potential_area_no_interactions = sum(p)
+#potential_area_no_interactions = 314640
+
 # finding Relative Basal Area for Giant Sequoia
 plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
 total_basal_area = sum(fia_db$BASAL.AREA[plots_with_giant_sequoia])  #total_basal_area = 44.11497
 
 
-# finding Potential area for Giant Sequoia (in how many fia plots Giant Sequoia can be, if we consider
-#the model without interactions)
 
-potential_area = sum(p)
-#potential_area = 314640
 
+#plot together Rel Bas Area and Potential Area(no ineract model) for Giant Seq
 p = as.data.frame(p)
 plots_where_giant_sequoia_can_be = which(p > 0)
 
-#plot together Rel Bas Area and Potential Area(no ineract model) for Giant Seq
 require('maps')
 
 par(mfrow=c(1,2))
@@ -196,6 +215,65 @@ points(x=fia_db$LON[plots_with_giant_sequoia], y=fia_db$LAT[plots_with_giant_seq
 
 map('usa')
 points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
+
+
+##############################some testing of code###########################################
+
+cat("Annual temperature / 
+precipitation of 30 places predicted to be giant-sequoia-friendly (potential area)\n")
+
+random_subset_30 = sample(which(p>0), size=30)
+
+for (random_place in random_subset_30) {
+  
+  cat("temp: ", tmpppt_df[random_place, 1], " & ppt: ", tmpppt_df[random_place, 12], "\n")
+  
+}
+
+
+cat("Annual temperature / precipitation of places where we know 
+    giant sequoias are there (realized area)\n")
+
+
+for (place_with_sequoia in which(fia_db$REL_BA_212 > 0)) {
+  
+  cat("temp: ", tmpppt_df[place_with_sequoia, 1], " & ppt: ", tmpppt_df[place_with_sequoia, 12], "\n")
+  
+}
+
+#-----------------------------------------------binned----------------------------------------------
+
+
+for (random_place in random_subset_30) {
+  
+  cat("temp: ", tmpppt_df_binned[random_place, 1], " & ppt: ", tmpppt_df_binned[random_place, 12], "\n")
+  
+}
+
+
+cat("Annual temperature / precipitation of places where we know 
+    giant sequoias are there (realized area)\n")
+
+
+for (place_with_sequoia in which(fia_db$REL_BA_212 > 0)) {
+  
+  cat("temp: ", tmpppt_df_binned[place_with_sequoia, 1], " & ppt: ", tmpppt_df_binned[place_with_sequoia, 12], "\n")
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
