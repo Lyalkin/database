@@ -203,21 +203,27 @@ total_basal_area = sum(fia_db$BASAL.AREA[plots_with_giant_sequoia])  #total_basa
 
 
 
-#plot together Rel Bas Area and Potential Area(no ineract model) for Giant Seq
+#plot together Rel Bas Area, Potential Area(no ineract model), Potential Area(ineract model) for Giant Seq
 p = as.data.frame(p)
-plots_where_giant_sequoia_can_be = which(p > 0)
+p2 = as.data.frame(p2)
+
+plots_no_interact = which(p > 0)
+plots_interact = which(p2 > 0)
 
 require('maps')
 
-par(mfrow=c(1,2))
+par(mfrow=c(1,3))
 map('usa')
 points(x=fia_db$LON[plots_with_giant_sequoia], y=fia_db$LAT[plots_with_giant_sequoia])
 
 map('usa')
-points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
+points(x=fia_db$LON[plots_no_interact], y=fia_db$LAT[plots_no_interact])
+
+map('usa')
+points(x=fia_db$LON[plots_interact], y=fia_db$LAT[plots_interact])
 
 
-###########################  some testing of code  ###########################################
+###########################  some testing of the code  ###########################################
 
 cat("Annual temperature / 
 precipitation of 30 places predicted to be giant-sequoia-friendly (potential area)\n")
@@ -261,11 +267,11 @@ for (place_with_sequoia in which(fia_db$REL_BA_212 > 0)) {
   
 }
 
-#######################################################################
+#--------------------------------------------------------------------------------------------
 s = which(tmpppt_df_binned[,1] == 5 & tmpppt_df_binned[,12] == 4)
 v = as.data.frame(tmpppt_df_binned[s, ])
 dim(v)
-
+#---------------------------------------------------------------------------------------------
 
 
 
