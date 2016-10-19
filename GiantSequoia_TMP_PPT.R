@@ -95,42 +95,66 @@ plot(bins[[3]], bins[[5]], type = "p",
 
 #model with no interaction
 
-#clim_vars_matrix is a matrix with 2 columns from tmppt_df_binned, na omitted, duplicates omitted
+#tmp_ppt_sequoia has tmp, ppt binned for which giant sequoia exists
+plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
+tmp_ppt_sequoia = cbind(tmppt_df_binned[,1][plots_with_giant_sequoia], tmppt_df_binned[,12][plots_with_giant_sequoia])
+tmp_ppt_sequoia = na.omit(unique(as.data.frame(tmp_ppt_sequoia)))
+dim(tmp_ppt_sequoia)
+#tmp_ppt_sequoia
 
-clim_vars_matrix = na.omit(unique(as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))))
-dim(clim_vars_matrix)
-head(clim_vars_matrix)
 
-
-#vars is a matrix having vars[i,j]=1 if clim_vars_matrix has a row "i j" 
+#vars is a matrix having vars[i,j]=1 if tmp_ppt_sequoia has a row "i j" 
 #and                     vars[i,j]=0 otherwise
 
 vars = matrix(0, 10, 10)
-for (i in 1:dim(clim_vars_matrix)[1])
-{vars[clim_vars_matrix[i,1],clim_vars_matrix[i,2]] = 1}
+for (i in 1:dim(tmp_ppt_sequoia)[1])
+{vars[tmp_ppt_sequoia[i,1],tmp_ppt_sequoia[i,2]] = 1}
 print(vars)
 
 
 #vars_no_interact obtained from vars matrix making it 'looking convex'
+#a1, a2 -  matrices for loop working
+
 vars_no_interact = vars
-for (i in 1:10)
-{
-  for (j in 1:10)
+               a1= matrix(7, 10, 10)
+               a2 = matrix(77, 10, 10)
+
+               
+while (identical(a1, a2) == FALSE) 
+{  
+ a1 = vars_no_interact
+ print(a1)
+ 
+ for (i in 1:9)
   {
-    if (vars_no_interact[i,j] == 0) 
-    {
-      if (vars_no_interact[i,1]+vars_no_interact[i,2]+vars_no_interact[i,3]+
-          vars_no_interact[i,4]+vars_no_interact[i,5]+vars_no_interact[i,6]+
-          vars_no_interact[i,7]+vars_no_interact[i,8]+vars_no_interact[i,9]+
-          vars_no_interact[i,10] > 0) vars_no_interact[i,j] = 1
+   for (j in 1:9)  
+   {
+    if (vars_no_interact[i,j] ==   0 & vars_no_interact[i,j+1] ==   1 & 
+        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] == 1) 
     
-      if (vars_no_interact[1,j]+vars_no_interact[2,j]+vars_no_interact[3,j]+
-          vars_no_interact[4,j]+vars_no_interact[5,j]+vars_no_interact[6,j]+
-          vars_no_interact[7,j]+vars_no_interact[8,j]+vars_no_interact[9,j]+
-          vars_no_interact[10,j] > 0) vars_no_interact[i,j] = 1
-    }
-  }
-}
+    {vars_no_interact[i,j] = 1} 
+      
+    
+   if  (vars_no_interact[i,j] ==   1 & vars_no_interact[i,j+1] ==   0 & 
+        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] == 1) 
+        
+    {vars_no_interact[i,j+1] = 1}
+    
+    if (vars_no_interact[i,j] ==   1 & vars_no_interact[i,j+1]   == 0 & 
+        vars_no_interact[i+1,j] == 0 & vars_no_interact[i+1,j+1] == 1) 
+        
+    {vars_no_interact[i+1,j] = 1}
+  
+    if (vars_no_interact[i,j] ==   1   & vars_no_interact[i,j+1]   == 1 & 
+        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] ==   0) 
+        
+    {vars_no_interact[i+1,j+1] = 1}
+   }
+ }
+a2 = vars_no_interact
+print(a2)
+}  
+ 
 print(vars_no_interact)
 
 
@@ -138,13 +162,11 @@ print(vars_no_interact)
 # p is a presence_absence vector for FIA plots if we consider model with no interactions
 
 d = dim(tmppt_df_binned)[1]
-p = vector(mode = "logical", length = d)  #d=754851, vector has FALSE components initially
+p = vector(mode = "logical", length = d)  #d=754851 -number of fia plots, vector has FALSE components initially
 
 c = as.data.frame(cbind(tmppt_df_binned[,1], tmppt_df_binned[,12]))
 
-
 for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2]]}
-
 
 for (i in 1:d) 
 {
@@ -156,20 +178,16 @@ plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
 total_basal_area = sum(fia_db$BASAL.AREA[plots_with_giant_sequoia])  #total_basal_area = 44.11497
 
 
-# finding Potential area for Giant Sequoia, the model without interactions
+# finding Potential area for Giant Sequoia (in how many fia plots Giant Sequoia can be, if we consider
+#the model without interactions)
+
+potential_area = sum(p)
+#potential_area = 314640
+
 p = as.data.frame(p)
 plots_where_giant_sequoia_can_be = which(p > 0)
 
-potential_basal_area = sum(fia_db$BASAL.AREA[plots_where_giant_sequoia_can_be], na.rm = TRUE)
-#potential_basal_area = 746160.4
-
-#the relative size of the realized area over the size of the potential area:
-rel_size = total_basal_area/potential_basal_area*100
-print(rel_size)
-
-
-
-#plot together Rel Bas Area and Potential Area - no interactions of Tmp-PPt for Giant Seq
+#plot together Rel Bas Area and Potential Area(no ineract model) for Giant Seq
 require('maps')
 
 par(mfrow=c(1,2))
@@ -178,4 +196,8 @@ points(x=fia_db$LON[plots_with_giant_sequoia], y=fia_db$LAT[plots_with_giant_seq
 
 map('usa')
 points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
+
+
+
+
 
