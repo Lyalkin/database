@@ -188,13 +188,13 @@ for (i in 1:d) {
 }
 
 potential_area_with_interactions = sum(p2)
-#potential_area_with_interactions = 120930
+#potential_area_with_interactions = 120 930
 
 # finding Potential area for Giant Sequoia (in how many fia plots Giant Sequoia can be, if we consider
 #the model without interactions)
 
 potential_area_no_interactions = sum(p)
-#potential_area_no_interactions = 314640
+#potential_area_no_interactions = 314 640
 
 # finding Relative Basal Area for Giant Sequoia
 plots_with_giant_sequoia = which(fia_db$REL_BA_212 > 0)
@@ -217,7 +217,7 @@ map('usa')
 points(x=fia_db$LON[plots_where_giant_sequoia_can_be], y=fia_db$LAT[plots_where_giant_sequoia_can_be])
 
 
-##############################some testing of code###########################################
+###########################  some testing of code  ###########################################
 
 cat("Annual temperature / 
 precipitation of 30 places predicted to be giant-sequoia-friendly (potential area)\n")
@@ -261,11 +261,10 @@ for (place_with_sequoia in which(fia_db$REL_BA_212 > 0)) {
   
 }
 
-
-
-
-
-
+#######################################################################
+s = which(tmpppt_df_binned[,1] == 5 & tmpppt_df_binned[,12] == 4)
+v = as.data.frame(tmpppt_df_binned[s, ])
+dim(v)
 
 
 
