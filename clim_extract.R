@@ -37,7 +37,7 @@ extract_tmpppt = function(fia_db, p)
   #tmps = extract(tmps,coords)
   #ppts = extract(ppts,coords)
   #pptd = extract(pptd, coords)
-  names(Bio_s) = paste0('Bio', 1:19, 's')
+  names(Bio_s) = paste0('Bio', 1:19, 's')   
   return(Bio_s)
 }
 
