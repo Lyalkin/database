@@ -2,18 +2,25 @@ code_path = 'C:/Users/Olga Rumyantseva/Documents/R Files/Code' # change to where
 data_path = 'C:/Users/Olga Rumyantseva/Documents/R Files/Data/' # change to where the data are (FIA and WORLDCLIM directories)
 setwd(code_path)
 
+#install.packages("scatterplot3d", dependencies = TRUE)
+#install.packages("rgl", dependencies = TRUE)
+
+
 require('maps')
 require('raster')
 require('sp')
 require('rgdal')
+
 
 # 125 is for Red pines (Pinus resinosa)
 species_number = 125
 
 #BIO5 = "Max Temperature of Warmest Month"
 #BIO6 = "Min Temperature of Coldest Month"
-var1 = 1      #climatic variable 1
-var2 = 12     #climatic variable 2
+#BIO7 = "Temperature Annual Range (BIO5-BIO6)"
+var1 = 5      #climatic variable 1
+var2 = 6      #climatic variable 2
+var3 = 7      #climatic variable 3
 
 # extraction of all the plots in the FIA DB and computation of the relative BA of the species
 # source('fia_extract.R')
@@ -37,7 +44,7 @@ summary(tmpppt_df)
 #BIO1= Annual Mean Temperature
 #BIO12= Annual Precipitation
 
-plots_with_species = which(fia_db[paste0('REL_BA_', species_number)] > 0)
+plots_with_tree = which(fia_db[paste0('REL_BA_', species_number)] > 0)
 
 
 # Now cut (make bins) for all NCOL(tmpppt_df) = 19 climatic variables
@@ -59,38 +66,78 @@ for (i in 2:NCOL(tmpppt_df))
 #dim(tmpppt_df_binned)
 
 
+# 3D plots
+library(rgl)
+
+x1 = tmpppt_df[,var1][plots_with_tree] 
+#summary(x1)
+y1 = tmpppt_df[,var2][plots_with_tree] 
+#summary(y1)
+z1 = tmpppt_df[,var3][plots_with_tree]   
+#summary(z1)
+
+x = tmpppt_df_binned[,var1][plots_with_tree]
+y = tmpppt_df_binned[,var2][plots_with_tree]
+z = tmpppt_df_binned[,var3][plots_with_tree]
 
 
-# we can plot clim variables
+plot3d(tmpppt_df_binned[,var1][plots_with_tree], tmpppt_df_binned[,var2][plots_with_tree],
+       tmpppt_df_binned[,var3][plots_with_tree], 
+       xlim=c(0, 11), ylim=c(0, 11), zlim=c(0, 11),
+       xlab=paste0("clim var ", var1), ylab=paste0("clim var ", var2), zlab=paste0("clim var ", var3), col="red", size=3)
 
 
-plot(tmpppt_df_binned[,var1][plots_with_tree], tmpppt_df_binned[,var2][plots_with_tree], type = "p",
-     xlab=paste0("clim var ", var1), ylab=paste0("clim var ", var2), 
-     xlim=c(0, 11), ylim=c(0, 11), cex=0.5)
+plot3d(x1, y1, z1, 
+              xlim=c(220, 335), ylim=c(-250, -50), zlim=c(300, 505),
+              xlab=paste0("clim var ", var1), ylab=paste0("clim var ", var2), zlab=paste0("clim var ", var3),
+              highlight.3d=TRUE, col.axis="blue",
+              col.grid="lightblue",  pch=20)
 
 
 
 
-#var1_var2_tree has columns var1 var2 binned for which the given tree grows
+#var1_var2_var3_tree has columns var1 var2 binned for which the given tree grows
 
 plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
 
-var1_var2_tree = cbind(tmpppt_df_binned[,var1][plots_with_tree], tmpppt_df_binned[,var2][plots_with_tree])
-var1_var2_tree = na.omit(unique(as.data.frame(var1_var2_tree)))
-#var1_var2_tree
+var1_var2_var3_tree = cbind(tmpppt_df_binned[,var1][plots_with_tree], 
+                            tmpppt_df_binned[,var2][plots_with_tree],
+                            tmpppt_df_binned[,var3][plots_with_tree])
+var1_var2_var3_tree = na.omit(unique(as.data.frame(var1_var2_var3_tree)))
+var1_var2_var3_tree
+#dim(var1_var2_var3_tree) = 30 rows 3 columns
+c = unique(var1_var2_var3_tree[ ,1])
+c
+
+d = unique(var1_var2_var3_tree[ ,2])
+d
+
+e = unique(var1_var2_var3_tree[ ,3])
+e
+
+
+l = length(unique(var1_var2_var3_tree[ ,1]))
+l
+
+a = which(var1_var2_var3_tree[ ,1] == c[1])
+v = unique(var1_var2_var3_tree[a, ])
+v
+
 
 
 #vars is a matrix having vars[i,j]=1 if var1_var2_tree has a row "i j" 
 #and                     vars[i,j]=0 otherwise
 
-vars = matrix(0, 10, 10)
-for (i in 1:dim(var1_var2_tree)[1])
-{vars[var1_var2_tree[i,1],var1_var2_tree[i,2]] = 1}
-#vars
+vars_5_0_0 = matrix(0, 10, 10)
+for (i in 1:l)
+{vars_5_0_0[v[i,2], v[i, 3]] = 1}
+
+vars_5_0_0
 
 
 
 #vars_no_interact obtained from vars matrix making it 'looking convex'
+
 vars_no_interact = vars
 vars_no_interact 
 
@@ -111,11 +158,10 @@ for (i in 1:10)
         vars_no_interact[10,j]
       
       if (s1>0 & s2>0) {vars_no_interact[i,j] = 1}
-    }
+      }
   }
 }
 print(vars_no_interact)
-
 
 
 
@@ -150,19 +196,19 @@ for (i in 1:d) {
 }
 
 potential_area_with_interactions = sum(p2)
-#potential_area_with_interactions = 444 185
+#potential_area_with_interactions = 435 790
 
 # finding Potential area for the tree (in how many fia plots the tree can be, if we consider
 #the model without interactions)
 
 potential_area_no_interactions = sum(p)
-#potential_area_no_interactions = 504 272
+#potential_area_no_interactions = 452 080
 
 # finding Relative Basal Area for 
 #plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
 
 total_basal_area = sum(fia_db$BASAL.AREA[plots_with_tree]) 
-#total_basal_area = 22 406.7
+ #total_basal_area = 22 406.7
 
 
 
@@ -236,6 +282,10 @@ s = which(tmpppt_df_binned[,1] == 5 & tmpppt_df_binned[,12] == 4)
 v = as.data.frame(tmpppt_df_binned[s, ])
 dim(v)
 #---------------------------------------------------------------------------------------------
+
+
+
+
 
 
 

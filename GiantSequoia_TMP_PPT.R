@@ -112,49 +112,31 @@ print(vars)
 
 
 #vars_no_interact obtained from vars matrix making it 'looking convex'
-#a1, a2 -  matrices for loop working
-
 vars_no_interact = vars
-               a1= matrix(7, 10, 10)
-               a2 = matrix(77, 10, 10)
+vars_no_interact 
 
-               
-while (identical(a1, a2) == FALSE) 
-{  
- a1 = vars_no_interact
- print(a1)
- 
- for (i in 1:9)
+for (i in 1:10)
+{
+  for (j in 1:10)
   {
-   for (j in 1:9)  
-   {
-    if (vars_no_interact[i,j] ==   0 & vars_no_interact[i,j+1] ==   1 & 
-        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] == 1) 
-    
-    {vars_no_interact[i,j] = 1} 
+    if (vars_no_interact[i,j] == 0) 
+    {
+      s1 = vars_no_interact[i,1]+vars_no_interact[i,2]+vars_no_interact[i,3]+
+        vars_no_interact[i,4]+vars_no_interact[i,5]+vars_no_interact[i,6]+
+        vars_no_interact[i,7]+vars_no_interact[i,8]+vars_no_interact[i,9]+
+        vars_no_interact[i,10]
       
-    
-   if  (vars_no_interact[i,j] ==   1 & vars_no_interact[i,j+1] ==   0 & 
-        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] == 1) 
-        
-    {vars_no_interact[i,j+1] = 1}
-    
-    if (vars_no_interact[i,j] ==   1 & vars_no_interact[i,j+1]   == 0 & 
-        vars_no_interact[i+1,j] == 0 & vars_no_interact[i+1,j+1] == 1) 
-        
-    {vars_no_interact[i+1,j] = 1}
-  
-    if (vars_no_interact[i,j] ==   1   & vars_no_interact[i,j+1]   == 1 & 
-        vars_no_interact[i+1,j] == 1 & vars_no_interact[i+1,j+1] ==   0) 
-        
-    {vars_no_interact[i+1,j+1] = 1}
-   }
- }
-a2 = vars_no_interact
-print(a2)
-}  
- 
+      s2 = vars_no_interact[1,j]+vars_no_interact[2,j]+vars_no_interact[3,j]+
+        vars_no_interact[4,j]+vars_no_interact[5,j]+vars_no_interact[6,j]+
+        vars_no_interact[7,j]+vars_no_interact[8,j]+vars_no_interact[9,j]+
+        vars_no_interact[10,j]
+      
+      if (s1>0 & s2>0) {vars_no_interact[i,j] = 1}
+    }
+  }
+}
 print(vars_no_interact)
+
 
 
 
