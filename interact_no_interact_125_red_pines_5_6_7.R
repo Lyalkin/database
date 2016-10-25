@@ -5,7 +5,6 @@ setwd(code_path)
 #install.packages("scatterplot3d", dependencies = TRUE)
 #install.packages("rgl", dependencies = TRUE)
 
-
 require('maps')
 require('raster')
 require('sp')
@@ -100,69 +99,83 @@ plot3d(x1, y1, z1,
 
 plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
 
-var1_var2_var3_tree = cbind(tmpppt_df_binned[,var1][plots_with_tree], 
-                            tmpppt_df_binned[,var2][plots_with_tree],
-                            tmpppt_df_binned[,var3][plots_with_tree])
-var1_var2_var3_tree = na.omit(unique(as.data.frame(var1_var2_var3_tree)))
-var1_var2_var3_tree
-#dim(var1_var2_var3_tree) = 30 rows 3 columns
-c = unique(var1_var2_var3_tree[ ,1])
-c
-
-d = unique(var1_var2_var3_tree[ ,2])
-d
-
-e = unique(var1_var2_var3_tree[ ,3])
-e
-
-
-l = length(unique(var1_var2_var3_tree[ ,1]))
-l
-
-a = which(var1_var2_var3_tree[ ,1] == c[1])
-v = unique(var1_var2_var3_tree[a, ])
-v
+v = cbind(tmpppt_df_binned[,var1][plots_with_tree], 
+          tmpppt_df_binned[,var2][plots_with_tree],
+          tmpppt_df_binned[,var3][plots_with_tree])
+v = na.omit(unique(as.data.frame(var1_var2_var3_tree)))
 
 
 
-#vars is a matrix having vars[i,j]=1 if var1_var2_tree has a row "i j" 
-#and                     vars[i,j]=0 otherwise
+#dim(v) = 30 rows 3 columns
 
-vars_5_0_0 = matrix(0, 10, 10)
-for (i in 1:l)
-{vars_5_0_0[v[i,2], v[i, 3]] = 1}
+vars = array(0, dim=c(10,10,10))
+vars_no_interact = array(0, dim=c(10,10,10))
 
-vars_5_0_0
+v1 = unique(v[ ,1])
+v2 = unique(v[ ,2])
+v3 = unique(v[ ,3])
 
-
-
-#vars_no_interact obtained from vars matrix making it 'looking convex'
-
-vars_no_interact = vars
-vars_no_interact 
-
-for (i in 1:10)
-{
-  for (j in 1:10)
-  {
-    if (vars_no_interact[i,j] == 0) 
-    {
-      s1 = vars_no_interact[i,1]+vars_no_interact[i,2]+vars_no_interact[i,3]+
-        vars_no_interact[i,4]+vars_no_interact[i,5]+vars_no_interact[i,6]+
-        vars_no_interact[i,7]+vars_no_interact[i,8]+vars_no_interact[i,9]+
-        vars_no_interact[i,10]
-      
-      s2 = vars_no_interact[1,j]+vars_no_interact[2,j]+vars_no_interact[3,j]+
-        vars_no_interact[4,j]+vars_no_interact[5,j]+vars_no_interact[6,j]+
-        vars_no_interact[7,j]+vars_no_interact[8,j]+vars_no_interact[9,j]+
-        vars_no_interact[10,j]
-      
-      if (s1>0 & s2>0) {vars_no_interact[i,j] = 1}
-      }
-  }
+  
+source('matrix_inter_no_inter.R')
+  
+for (k in 1:length(v1))
+{ 
+ n = which(v[ ,1] == v1[k])
+ m = unique(v[n, ])
+ print(m)
+  for (i in 1:dim(m)[1])  {vars[v1[k], m[i,2], m[i, 3]] = 1}
+  
+  print(paste0('matrix with interactions vars[', v1[k],  ', , ]'))
+  print(vars[v1[k], , ])
+ 
+  vars_no_interact[v1[k], , ] = conv(vars[v1[k], , ])
+  
+  print(paste0('matrix without interactions vars_no_interact[', v1[k],  ', , ]'))
+  print(vars_no_interact[v1[k], , ])
 }
-print(vars_no_interact)
 
+for (k in 1:length(v2))
+{ 
+  n = which(v[ ,2] == v2[k])
+  m = unique(v[n, ])
+  print(m)
+  
+  for (i in 1:dim(m)[1])  {vars[m[i,1], v2[k], m[i, 3]] = 1}
+  
+  print(paste0('matrix with interactions vars[  ,', v2[k],', ]'))
+  print(vars[ ,v2[k], ])
+  
+  vars_no_interact[ ,v2[k], ] = conv(vars[ ,v2[k], ])
+  
+  print(paste0('matrix with interactions vars_no_interact[  ,', v2[k],', ]'))
+  print(vars_no_interact[ ,v2[k], ])
+}
+
+for (k in 1:length(v3))
+{ 
+  n = which(v[ ,3] == v3[k])
+  m = unique(v[n, ])
+  print(m)
+  
+  for (i in 1:dim(m)[1])  {vars[m[i,1], m[i, 3], v3[k]] = 1}
+  
+  print(paste0('matrix with interactions vars[  , ,', v3[k],']'))
+  print(vars[ , ,v3[k]])
+  
+  vars_no_interact[ , ,v3[k]] = conv(vars[ , ,v3[k]])
+  
+  print(paste0('matrix with interactions vars_no_interact[  , ,', v3[k],']'))
+  print(vars_no_interact[ , ,v3[k]])
+}
+
+#zero = matrix(0, nrow = 10, ncol = 10)
+#for (i in 1:10)
+#  if (identical(vars_no_interact[i, , ], zero) == FALSE) 
+#   {
+#    print(i)
+#    vars_no_interact[i, , ]
+#    i = i+1
+#    }
 
 
 
@@ -171,9 +184,11 @@ print(vars_no_interact)
 d = dim(tmpppt_df_binned)[1]
 p = vector(mode = "logical", length = d)  #d= -number of fia plots, vector has FALSE components initially
 
-c = as.data.frame(cbind(tmpppt_df_binned[,var1], tmpppt_df_binned[,var2]))
+c = as.data.frame(cbind(tmpppt_df_binned[,var1], 
+                        tmpppt_df_binned[,var2], tmpppt_df_binned[,var3]))
 
-for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2]]}
+
+for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2], c[i,3]]}
 
 for (i in 1:d) 
 {
@@ -186,7 +201,7 @@ p2 = vector(mode = "logical", length = d) # prediction of the model with interac
 
 for (i in 1:d) {
   
-  p2[i] = vars[c[i,1], c[i,2]]
+  p2[i] = vars[c[i,1], c[i,2], c[i,3]]
   
   if (is.na(p2[i]) == TRUE) {
     
@@ -196,19 +211,19 @@ for (i in 1:d) {
 }
 
 potential_area_with_interactions = sum(p2)
-#potential_area_with_interactions = 435 790
+#potential_area_with_interactions = 383 950 
 
 # finding Potential area for the tree (in how many fia plots the tree can be, if we consider
 #the model without interactions)
 
 potential_area_no_interactions = sum(p)
-#potential_area_no_interactions = 452 080
+#potential_area_no_interactions = 384 979
 
 # finding Relative Basal Area for 
 #plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
 
 total_basal_area = sum(fia_db$BASAL.AREA[plots_with_tree]) 
- #total_basal_area = 22 406.7
+#total_basal_area =  22 406.7
 
 
 
@@ -231,61 +246,4 @@ points(x=fia_db$LON[plots_no_interact], y=fia_db$LAT[plots_no_interact])
 
 map('usa')
 points(x=fia_db$LON[plots_interact], y=fia_db$LAT[plots_interact])
-
-
-###########################  some testing of the code  ###########################################
-
-cat("Annual temperature / 
-    precipitation of 30 places predicted to be giant-sequoia-friendly (potential area)\n")
-
-random_subset_30 = sample(which(p>0), size=30)
-
-for (random_place in random_subset_30) {
-  
-  cat("temp: ", tmpppt_df[random_place, 1], " & ppt: ", tmpppt_df[random_place, 12], "\n")
-  
-}
-
-
-cat("Annual temperature / precipitation of places where we know 
-    giant sequoias are there (realized area)\n")
-
-
-for (place_with_tree in which(fia_db$REL_BA_species_number > 0)) {
-  
-  cat("temp: ", tmpppt_df[place_with_tree, 1], " & ppt: ", tmpppt_df[place_with_tree, 12], "\n")
-  
-}
-
-#-----------------------------------------------binned----------------------------------------------
-
-
-for (random_place in random_subset_30) {
-  
-  cat("temp: ", tmpppt_df_binned[random_place, 1], " & ppt: ", tmpppt_df_binned[random_place, 12], "\n")
-  
-}
-
-
-cat("Annual temperature / precipitation of places where we know 
-    giant sequoias are there (realized area)\n")
-
-
-for (place_with_tree in which(fia_db$REL_BA_species_number > 0)) {
-  
-  cat("temp: ", tmpppt_df_binned[place_with_tree, 1], " & ppt: ", tmpppt_df_binned[place_with_tree, 12], "\n")
-  
-}
-
-#--------------------------------------------------------------------------------------------
-s = which(tmpppt_df_binned[,1] == 5 & tmpppt_df_binned[,12] == 4)
-v = as.data.frame(tmpppt_df_binned[s, ])
-dim(v)
-#---------------------------------------------------------------------------------------------
-
-
-
-
-
-
 
