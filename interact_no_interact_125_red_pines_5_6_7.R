@@ -95,7 +95,7 @@ plot3d(x1, y1, z1,
 
 
 
-#var1_var2_var3_tree has columns var1 var2 binned for which the given tree grows
+#v has columns var1 var2 var3 binned for which the given tree grows
 
 plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
 
