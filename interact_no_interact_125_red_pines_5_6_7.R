@@ -40,8 +40,6 @@ tmpppt_df = as.data.frame(tmpppt)
 summary(tmpppt_df)
 
 
-#BIO1= Annual Mean Temperature
-#BIO12= Annual Precipitation
 
 plots_with_tree = which(fia_db[paste0('REL_BA_', species_number)] > 0)
 
