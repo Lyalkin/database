@@ -115,9 +115,11 @@ v1 = unique(v[ ,1])
 v2 = unique(v[ ,2])
 v3 = unique(v[ ,3])
 
-  
+
+
 source('matrix_inter_no_inter.R')
-  
+
+#m has columns v1 v2 v3 where the column v1 has the same values  
 for (k in 1:length(v1))
 { 
  n = which(v[ ,1] == v1[k])
@@ -134,6 +136,7 @@ for (k in 1:length(v1))
   print(vars_no_interact[v1[k], , ])
 }
 
+#m has columns v1 v2 v3 where the column v2 has the same values
 for (k in 1:length(v2))
 { 
   n = which(v[ ,2] == v2[k])
@@ -151,6 +154,7 @@ for (k in 1:length(v2))
   print(vars_no_interact[ ,v2[k], ])
 }
 
+#m has columns v1 v2 v3 where the column v3 has the same values
 for (k in 1:length(v3))
 { 
   n = which(v[ ,3] == v3[k])
@@ -167,15 +171,6 @@ for (k in 1:length(v3))
   print(paste0('matrix with interactions vars_no_interact[  , ,', v3[k],']'))
   print(vars_no_interact[ , ,v3[k]])
 }
-
-#zero = matrix(0, nrow = 10, ncol = 10)
-#for (i in 1:10)
-#  if (identical(vars_no_interact[i, , ], zero) == FALSE) 
-#   {
-#    print(i)
-#    vars_no_interact[i, , ]
-#    i = i+1
-#    }
 
 
 
