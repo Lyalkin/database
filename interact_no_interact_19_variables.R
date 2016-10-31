@@ -51,9 +51,12 @@ for (i in 2:NCOL(tmpppt_df))
 
 
 # making fia_db_with_Bins
+delta = 0.1
+res = 10             
+
 data_name = paste0('PRESENCE_', species_number)
 
-fia_db[[data_name]] = (fia_db[[paste0('REL_BA_', species_number)]] > 0.1)
+fia_db[[data_name]] = (fia_db[[paste0('REL_BA_', species_number)]] > delta)
 
 fia_db = as.data.frame(fia_db)
 fia_db_with_Bins = cbind(fia_db, tmpppt_df_binned)
@@ -70,8 +73,8 @@ fia_db_with_Bins_T = fia_db_with_Bins[which(fia_db_with_Bins[, data_name]==T), ]
 
 
 # Computing some Shapley values
-#fia_db has 754 851 rows
-#        1 000 000
+#fia_db   has 754 851 rows
+#shapleys has 1 000 000 rows
 shapleys = matrix(NA, ncol=19, nrow=1000000)
 
 max_comb_size = 18
@@ -145,67 +148,6 @@ for (trial in 1:nrow(shapleys)) {
   }
   
 }
-
-
-
-plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
-
-
-# p is a presence_absence vector for FIA plots if we consider model with no interactions
-
-d = dim(tmpppt_df_binned)[1]
-p = vector(mode = "logical", length = d)  #d= -number of fia plots, vector has FALSE components initially
-
-c = as.data.frame(cbind(tmpppt_df_binned[,var1], 
-                        tmpppt_df_binned[,var2], tmpppt_df_binned[,var3]))
-
-
-for (i in 1:d) {p[i] = vars_no_interact[c[i,1], c[i,2], c[i,3]]}
-
-for (i in 1:d) 
-{
-  if (is.na(p[i]) == TRUE) {p[i] = 0} 
-}
-
-# p2 is a presence_absence vector for FIA plots if we consider model with interactions
-
-p2 = vector(mode = "logical", length = d) # prediction of the model with interaction
-
-for (i in 1:d) {
-  
-  p2[i] = vars[c[i,1], c[i,2], c[i,3]]
-  
-  if (is.na(p2[i]) == TRUE) {
-    
-    p2[i] = 0
-    
-  }
-}
-
-potential_area_with_interactions = sum(p2)
-#potential_area_with_interactions = 383 950 
-
-# finding Potential area for the tree (in how many fia plots the tree can be, if we consider
-#the model without interactions)
-
-potential_area_no_interactions = sum(p)
-#potential_area_no_interactions = 384 979
-
-# finding Relative Basal Area for 
-#plots_with_tree = which(fia_db[[paste0("REL_BA_", species_number)]] > 0)
-
-total_basal_area = sum(fia_db$BASAL.AREA[plots_with_tree]) 
-#total_basal_area =  22 406.7
-
-
-
-
-#plot together Rel Bas Area, Potential Area(no ineract model), Potential Area(ineract model) for Giant Seq
-p = as.data.frame(p)
-p2 = as.data.frame(p2)
-
-plots_no_interact = which(p > 0)
-plots_interact = which(p2 > 0)
 
 
 
