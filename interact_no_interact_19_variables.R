@@ -52,7 +52,7 @@ for (i in 2:NCOL(tmpppt_df))
 
 # making fia_db_with_Bins
 delta = 0.1
-res = 10             
+res = 10 #on how many pieces we bin            
 
 data_name = paste0('PRESENCE_', species_number)
 
@@ -62,7 +62,7 @@ fia_db = as.data.frame(fia_db)
 fia_db_with_Bins = cbind(fia_db, tmpppt_df_binned)
 
 
-# computes intermediate variables to speed up the following computations
+#computes intermediate variables to speed up the following computations
 n_T = length(which(fia_db_with_Bins[, data_name]==T))
 #n_T = 12 414
 
@@ -70,14 +70,50 @@ n_all = nrow(fia_db_with_Bins)
 #n_all = 754 851
 
 fia_db_with_Bins_T = fia_db_with_Bins[which(fia_db_with_Bins[, data_name]==T), ]
+head(fia_db_with_Bins_T)
 
+#finding potential area for model with no interaction
 
+fia_db_with_Bins_marker_T = rep(0, n_T)
+
+fia_db_with_Bins_marker_all = rep(0, n_all)
+
+for (i in 1:19) 
+{
+  if (i <= 10) { fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[,i]*res^(i-1)
+                 fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[,i]*res^(i-1) } 
+
+   else  { fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[,i]/res^(i-10)
+           fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[,i]/res^(i-10) }
+}
+
+#potential_area is in how many fia plots the tree can potentially grow
+ potential_area = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
+#potential_area = 10 687
+ l = length(na.omit(fia_db_with_Bins_marker_T))
+ #l = 10 687
+
+ 
+#plot them
+a = fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T))
+a = which(a==T)
+dim(a)
+
+b = which(fia_db_with_Bins[, data_name]==T)
+
+par(mfrow=c(1,2))
+map('usa')
+points(x=fia_db$LON[b], y=fia_db$LAT[b])
+
+map('usa')
+points(x=fia_db$LON[a], y=fia_db$LAT[a])
+ 
 # Computing some Shapley values
 #fia_db   has 754 851 rows
 #shapleys has 1 000 000 rows
 shapleys = matrix(NA, ncol=19, nrow=1000000)
 
-max_comb_size = 18
+max_comb_size = 18  #the max size of the group of variables (the group is different from the set of all 19 variables)
 
 pb = txtProgressBar(max=nrow(shapleys), style = 3)
 
@@ -87,7 +123,7 @@ for (trial in 1:nrow(shapleys)) {
   
   for (var in 1:ncol(shapleys)) {
     
-    n_vars = sample.int(max_comb_size, 1)
+    n_vars = sample.int(max_comb_size, 1) #the size of selected group  ?chosen randomly??? there can be repetitions
     
     vars_selected = c(sample((1:19)[-var], n_vars), var)
     
@@ -142,6 +178,7 @@ for (trial in 1:nrow(shapleys)) {
     }
     
     score_with = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
+#score_without = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
     
     shapleys[trial, var] = (score_without - score_with) * ( factorial(n_vars) * factorial(max_comb_size-n_vars) / factorial(19) )
     
