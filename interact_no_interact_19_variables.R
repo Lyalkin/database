@@ -31,7 +31,7 @@ tmpppt = readRDS(file = paste0(code_path, '/tmpppt.rds'))
 
 
 tmpppt_df = as.data.frame(tmpppt)
-summary(tmpppt_df)
+#summary(tmpppt_df)
 
 # Now make tmpppt_df_binned from tmpppt_df
 source('extract_breaks_bins.R')
@@ -51,8 +51,8 @@ for (i in 2:NCOL(tmpppt_df))
 
 
 # making fia_db_with_Bins
-delta = 0.1
-res = 10 #on how many pieces we bin            
+delta= 0.1
+res= 10 #on how many pieces we bin            
 
 data_name = paste0('PRESENCE_', species_number)
 
@@ -60,7 +60,6 @@ fia_db[[data_name]] = (fia_db[[paste0('REL_BA_', species_number)]] > delta)
 
 fia_db = as.data.frame(fia_db)
 fia_db_with_Bins = cbind(fia_db, tmpppt_df_binned)
-
 
 #computes intermediate variables to speed up the following computations
 n_T = length(which(fia_db_with_Bins[, data_name]==T))
@@ -70,7 +69,7 @@ n_all = nrow(fia_db_with_Bins)
 #n_all = 754 851
 
 fia_db_with_Bins_T = fia_db_with_Bins[which(fia_db_with_Bins[, data_name]==T), ]
-head(fia_db_with_Bins_T)
+
 
 #finding potential area for model with no interaction
 
@@ -78,37 +77,45 @@ fia_db_with_Bins_marker_T = rep(0, n_T)
 
 fia_db_with_Bins_marker_all = rep(0, n_all)
 
-for (i in 1:19) 
-{
-  if (i <= 10) { fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[,i]*res^(i-1)
-                 fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[,i]*res^(i-1) } 
+dimensions = paste0('Bio', c(1:19), 's_bin')
 
-   else  { fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[,i]/res^(i-10)
-           fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[,i]/res^(i-10) }
+
+for (i in 1:10) 
+{
+  fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[, dimensions[i]]*res^(i-1)
+  fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[, dimensions[i]]*res^(i-1)
 }
 
+for (i in 11:19) 
+{
+ fia_db_with_Bins_marker_T = fia_db_with_Bins_marker_T + fia_db_with_Bins_T[, dimensions[i]]/res^(i-10)
+ fia_db_with_Bins_marker_all = fia_db_with_Bins_marker_all + fia_db_with_Bins[, dimensions[i]]/res^(i-10)
+}
+
+
 #potential_area is in how many fia plots the tree can potentially grow
- potential_area = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
-#potential_area = 10 687
- l = length(na.omit(fia_db_with_Bins_marker_T))
- #l = 10 687
-
  
-#plot them
-a = fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T))
-a = which(a==T)
-dim(a)
+potential_area = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
+#potential_area = 173 566
 
-b = which(fia_db_with_Bins[, data_name]==T)
+
+
+#plot the Realized and Potential area
+a = fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T))
+b = fia_db_with_Bins[which(a == T), ]
 
 par(mfrow=c(1,2))
+#Realized area
 map('usa')
-points(x=fia_db$LON[b], y=fia_db$LAT[b])
+points(x=fia_db_with_Bins_T$LON, y=fia_db_with_Bins_T$LAT)
 
+#Potential area
 map('usa')
-points(x=fia_db$LON[a], y=fia_db$LAT[a])
+points(x=b$LON, y=b$LAT)
  
-# Computing some Shapley values
+
+
+####################################### Computing some Shapley values#####################################################################
 #fia_db   has 754 851 rows
 #shapleys has 1 000 000 rows
 shapleys = matrix(NA, ncol=19, nrow=1000000)
