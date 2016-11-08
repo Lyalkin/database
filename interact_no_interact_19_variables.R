@@ -193,6 +193,43 @@ for (trial in 1:nrow(shapleys)) {
   
 }
 
+###################################another approach to compute Shapley Values#########################################################
+#2^19-1 = 524 287
+shap_matrix = matrix(NA, ncol=19, nrow = 524287)
+
+for (k in 1:524287) 
+{ 
+  #print(intToBits(k)) 
+  vars_selected=c()
+  for (j in 1:19) 
+  {
+    if (intToBits(k)[j] == 01) 
+    {
+      vars_selected = c(vars_selected, j) 
+    }
+    
+  }
+  #print(vars_selected)
+  vars_selected_complement = (1:19)[-vars_selected]
+  #print(vars_selected_complement)
+  
+  for (var in 1:19) 
+   {
+     if (var %in% vars_selected == FALSE) 
+      { source('Shapleys_function.R')
+        shapleys = shapleys(vars_selected, var)
+        shap_matrix[k, var]= shapleys }
+    
+    else {vars_selected = vars_selected_complement
+          source('Shapleys_function.R')
+          shapleys = shapleys(vars_selected, var)
+          shap_matrix[k, var]= shapleys }
+    } 
+}
+
+
+
+
 
 
 
