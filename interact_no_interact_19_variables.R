@@ -61,12 +61,28 @@ fia_db[[data_name]] = (fia_db[[paste0('REL_BA_', species_number)]] > delta)
 fia_db = as.data.frame(fia_db)
 fia_db_with_Bins = cbind(fia_db, tmpppt_df_binned)
 
+##################
+## Data cleaning #
+##################
+
+# create a backup of the data, prior to cleaning
+fia_db_with_Bins_backup = fia_db_with_Bins
+
+# keep only the central subplot (CONDID is 1)
+fia_db_with_Bins = fia_db_with_Bins[which(fia_db_with_Bins$CONDID == 1), ]
+
+# remove duplicates, aggregate removes duplicates
+form = as.formula(paste(data_name, '~ .')) # create the formula
+fia_db_with_Bins = aggregate(form, fia_db_with_Bins[, c(8,9,12:ncol(fia_db_with_Bins))], max)
+
+#nrow(fia_db_with_Bins) = 271 846
+
 #computes intermediate variables to speed up the following computations
 n_T = length(which(fia_db_with_Bins[, data_name]==T))
-#n_T = 12 414
+#n_T = 4 959
 
 n_all = nrow(fia_db_with_Bins)
-#n_all = 754 851
+#n_all = 271 846
 
 fia_db_with_Bins_T = fia_db_with_Bins[which(fia_db_with_Bins[, data_name]==T), ]
 
@@ -93,10 +109,10 @@ for (i in 11:19)
 }
 
 
-#potential_area is in how many fia plots the tree can potentially grow
+#potential_area is in how many fia plots the tree can potentially grow (Interaction model)
  
 potential_area = sum(fia_db_with_Bins_marker_all %in% unique(na.omit(fia_db_with_Bins_marker_T)))
-#potential_area = 173 566
+#potential_area = 68 623
 
 
 
@@ -116,9 +132,8 @@ points(x=b$LON, y=b$LAT)
 
 
 ####################################### Computing some Shapley values#####################################################################
-#fia_db   has 754 851 rows
-#shapleys has 1 000 000 rows
-shapleys = matrix(NA, ncol=19, nrow=1000000)
+#fia_db_with_bins has 271 846 rows
+shapleys = matrix(NA, ncol=19, nrow=271846)
 
 max_comb_size = 18  #the max size of the group of variables (the group is different from the set of all 19 variables)
 
@@ -193,6 +208,12 @@ for (trial in 1:nrow(shapleys)) {
   
 }
 
+
+saveRDS(shapleys, file = paste0(code_path, '/shapleys_', species_number, '.rds'))
+
+n_done = which(is.na(shapleys[,ncol(shapleys)]))[1] - 1
+#n_done = 22 754
+
 ###################################another approach to compute Shapley Values#########################################################
 #2^19-1 = 524 287
 shap_matrix = matrix(NA, ncol=19, nrow = 524287)
@@ -226,6 +247,274 @@ for (k in 1:524287)
           shap_matrix[k, var]= shapleys }
     } 
 }
+
+
+saveRDS(shap_matrix, file = paste0(code_path, '/shap_matrix_', species_number, '.rds'))
+
+n_done = which(is.na(shap_matrix[,ncol(shap_matrix)]))[1] - 1
+#n_done = 16 139
+
+
+
+#################### Code to output Shapley Values  #####################################
+all_variable_names = c('Annual Mean Temperature',
+                       
+                       'Mean Diurnal Range',
+                       
+                       'Isothermality',
+                       
+                       'Temperature Seasonality',
+                       
+                       'Max Temperature of Warmest Month',
+                       
+                       'Min Temperature of Coldest Month',
+                       
+                       'Temperature Annual Range',
+                       
+                       'Mean Temperature of Wettest Quarter',
+                       
+                       'Mean Temperature of Driest Quarter',
+                       
+                       'Mean Temperature of Warmest Quarter',
+                       
+                       'Mean Temperature of Coldest Quarter',
+                       
+                       'Annual Precipitation',
+                       
+                       'Precipitation of Wettest Month',
+                       
+                       'Precipitation of Driest Month',
+                       
+                       'Precipitation Seasonality',
+                       
+                       'Precipitation of Wettest Quarter',
+                       
+                       'Precipitation of Driest Quarter',
+                       
+                       'Precipitation of Warmest Quarter',
+                       
+                       'Precipitation of Coldest Quarter')
+
+
+bioclim_types = c(1, 3, 3, 3, 1, 1, 3, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2) # this variable encodes whether the bioclimatic variable is linked to temperature (1), precipitation (2) or if it is some measure of variability (3)
+
+colormap = c('orange','lightblue', 'purple')
+
+
+species_name= 'Sitka Spruce'
+
+
+## THE EXACT SHAPLEY VALUES:
+
+shapleys = readRDS('C:/Users/Olga Rumyantseva/Documents/R Files/Code/shap_matrix_125.rds')
+
+
+scores_exact = colMeans(shapleys, na.rm=T)
+
+order_exact = order(scores_exact, decreasing = T)
+
+bp = barplot(scores_exact[order_exact], col=colormap[bioclim_types[order_exact]], names.arg=NA, las=1, ylab='Exact shapley value')
+
+text(bp, 1, all_variable_names[order_exact], srt=90, adj=0, xpd=T, font=3)
+
+legend('topright', fill=colormap, c('Temperature-related', 'Precipitation-related', 'Variability-related'), bty='n', xpd=T)
+
+title(paste0('Which bioclimatic variables characterize best the potential area of ', species_name, '?'))
+
+
+
+## Approximated shapley values (with random sampling):
+
+shapleys = readRDS('C:/Users/Olga Rumyantseva/Documents/R Files/Code/shap_matrix_125.rds')
+
+n_done = which(is.na(shapleys[,ncol(shapleys)]))[1] - 1
+
+#half_done = n_done/2
+
+
+#mean1 = colMeans(shapleys[1:half_done,])
+
+#mean2 = colMeans(shapleys[(1+half_done):n_done,])
+
+#col_diff = mean1/mean2*100-100
+
+#total_diff = mean(col_diff)
+
+#abs_col_diff = abs(col_diff)
+
+
+
+# names(col_diff) = c('Annual Mean Temperature',
+#                    
+#                    'Mean Diurnal Range (Mean of monthly (max temp - min temp))',
+#                    
+#                    'Isothermality (BIO2/BIO7) (* 100)',
+#                    
+#                    'Temperature Seasonality (standard deviation *100)',
+#                    
+#                    'Max Temperature of Warmest Month',
+#                    
+#                    'Min Temperature of Coldest Month',
+#                    
+#                    'Temperature Annual Range (BIO5-BIO6)',
+#                    
+#                    'Mean Temperature of Wettest Quarter',
+#                    
+#                    'Mean Temperature of Driest Quarter',
+#                    
+#                    'Mean Temperature of Warmest Quarter',
+#                    
+#                    'Mean Temperature of Coldest Quarter',
+#                    
+#                    'Annual Precipitation',
+#                    
+#                    'Precipitation of Wettest Month',
+#                    
+#                    'Precipitation of Driest Month',
+#                    
+#                    'Precipitation Seasonality (Coefficient of Variation)',
+#                    
+#                    'Precipitation of Wettest Quarter',
+#                    
+#                    'Precipitation of Driest Quarter',
+#                    
+#                    'Precipitation of Warmest Quarter',
+#                    
+#                    'Precipitation of Coldest Quarter')
+
+
+
+
+###### names(abs_col_diff) = c('Annual Mean Temperature',
+#                        
+#                        'Mean Diurnal Range (Mean of monthly (max temp - min temp))',
+#                        
+#                        'Isothermality (BIO2/BIO7) (* 100)',
+#                        
+#                        'Temperature Seasonality (standard deviation *100)',
+#                        
+#                        'Max Temperature of Warmest Month',
+#                        
+#                        'Min Temperature of Coldest Month',
+#                        
+#                        'Temperature Annual Range (BIO5-BIO6)',
+#                        
+#                        'Mean Temperature of Wettest Quarter',
+#                        
+#                        'Mean Temperature of Driest Quarter',
+#                        
+#                        'Mean Temperature of Warmest Quarter',
+#                        
+#                        'Mean Temperature of Coldest Quarter',
+#                        
+#                        'Annual Precipitation',
+#                        
+#                        'Precipitation of Wettest Month',
+#                        
+#                        'Precipitation of Driest Month',
+#                        
+#                        'Precipitation Seasonality (Coefficient of Variation)',
+#                        
+#                        'Precipitation of Wettest Quarter',
+#                        
+#                        'Precipitation of Driest Quarter',
+#                        
+#                        'Precipitation of Warmest Quarter',
+#                        
+#                        'Precipitation of Coldest Quarter')
+
+
+
+
+require(boot) ## If error, install: install.packages("boot")
+
+get_mean_subsample = function(data, indices) {
+  
+  return(colMeans(data[indices, ]))
+  
+}
+
+results = boot(data=shapleys[1:n_done, ], statistic=get_mean_subsample, R=100)
+
+# plot(results)
+
+confs = sapply(1:19, function(i){
+  
+  tmp=boot.ci(results, type="norm", index=i)
+  
+  return(c(tmp$t0, tmp$normal))}
+  
+)
+
+confs = rbind(confs, 1:19)
+
+row.names(confs) = c('statistic', 'conf_int', 'min_bound', 'max_bound', 'climatic_var_i')
+
+colnames(confs) = c('Annual Mean Temperature',
+                    
+                    'Mean Diurnal Range',
+                    
+                    'Isothermality',
+                    
+                    'Temperature Seasonality',
+                    
+                    'Max Temperature of Warmest Month',
+                    
+                    'Min Temperature of Coldest Month',
+                    
+                    'Temperature Annual Range',
+                    
+                    'Mean Temperature of Wettest Quarter',
+                    
+                    'Mean Temperature of Driest Quarter',
+                    
+                    'Mean Temperature of Warmest Quarter',
+                    
+                    'Mean Temperature of Coldest Quarter',
+                    
+                    'Annual Precipitation',
+                    
+                    'Precipitation of Wettest Month',
+                    
+                    'Precipitation of Driest Month',
+                    
+                    'Precipitation Seasonality',
+                    
+                    'Precipitation of Wettest Quarter',
+                    
+                    'Precipitation of Driest Quarter',
+                    
+                    'Precipitation of Warmest Quarter',
+                    
+                    'Precipitation of Coldest Quarter')
+
+bioclim_types = c(1, 3, 3, 3, 1, 1, 3, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2) # this variable encodes whether the bioclimatic variable is linked to temperature (1), precipitation (2) or if it is some measure of variability (3)
+
+ordered_shap = confs[, order(confs[1,], decreasing = T)]
+
+scores = unlist(ordered_shap[1,])
+
+colormap = c('orange','lightblue', 'purple')
+
+
+
+
+# plot the figure
+
+bp = barplot(scores, col=colormap[bioclim_types[unlist(ordered_shap[5,])]], names.arg=NA, las=1, ylab='Approximated shapley value')
+
+text(bp, 1, names(ordered_shap[1,]), srt=90, adj=0, xpd=T, font=3)
+
+legend('topright', fill=colormap, c('Temperature-related', 'Precipitation-related', 'Variability-related'), bty='n', xpd=T)
+
+title(paste0('Which bioclimatic variables characterize best the potential area of ', species_name, '?'))
+
+
+require('Hmisc')
+
+errbar(bp, unlist(ordered_shap[1,]), unlist(ordered_shap[3,]), unlist(ordered_shap[4,]), add=T, xpd=T, pch=NA)
+
+
 
 
 
