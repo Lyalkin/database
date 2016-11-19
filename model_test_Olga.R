@@ -1,4 +1,4 @@
-# set the working directory
+# set the working directory   lines 2, 4, 5, 16, 135, 206
 setwd("~/tmptodelete/model_without_interactions/") # change this on your computer
 
 code_path = 'C:/Users/Olga Rumyantseva/Documents/R Files/Code' # change to where the code is
@@ -125,6 +125,30 @@ prediction_with = potential_with(c(1:19), clim_data)
 
 prediction_without = potential_without(c(1:19), clim_data)
 
+
+require('maps')
+par(mfrow=c(1,3))
+map('usa')
+points(x=fia_db$LON[which(fia_db_with_Bins[, data_name]==T)], 
+       y=fia_db$LAT[which(fia_db_with_Bins[, data_name]==T)])
+require('graphics')
+mtext(" Eastern White Pine (Species 125) distribution", side=1)
+
+
+map('usa')
+points(x=fia_db$LON[which(prediction_with == T)], 
+       y=fia_db$LAT[which(prediction_with == T)])
+require('graphics')
+mtext("Model 'With interactions'", side=1)
+
+
+map('usa')
+points(x=fia_db$LON[which(prediction_without == T)], 
+       y=fia_db$LAT[which(prediction_without == T)])
+require('graphics')
+mtext("Model 'Without interactions'", side=1)
+
+
 # Resampling approach to approximate the shapley values, model WITH interactions
 shapleys_WITH_resampled = matrix(NA, ncol=clim_data$variables_nb, nrow=10000)
 pb = txtProgressBar(max=nrow(shapleys_WITH_resampled), style = 3)
@@ -151,7 +175,7 @@ for (trial in 1:nrow(shapleys_WITHOUT_resampled)) {
 }
 
 
-# Exhaustive approach to compute the shapley values:
+# Exhaustive approach to compute the shapley values (With interact):
 possible_comb = as.matrix(expand.grid(as.data.frame(sapply(1:(clim_data$variables_nb-1), function(...)c(T,F))))) # all the T/F combinations of 18 variables (19-1 variables)
 shapleys_WITH_exact = matrix(NA, ncol=clim_data$variables_nb, nrow=nrow(possible_comb)-1)
 pb = txtProgressBar(max=nrow(shapleys_WITH_exact), style = 3)
@@ -165,7 +189,7 @@ for (trial in 1:nrow(shapleys_WITH_exact)) {
 }
 
 
-# Exhaustive approach to compute the shapley values:
+# Exhaustive approach to compute the shapley values (without interact.):
 possible_comb = as.matrix(expand.grid(as.data.frame(sapply(1:(clim_data$variables_nb-1), function(...)c(T,F))))) # all the T/F combinations of 18 variables (19-1 variables)
 shapleys_WITHOUT_exact = matrix(NA, ncol=clim_data$variables_nb, nrow=nrow(possible_comb)-1)
 pb = txtProgressBar(max=nrow(shapleys_WITHOUT_exact), style = 3)
@@ -178,35 +202,8 @@ for (trial in 1:nrow(shapleys_WITHOUT_exact)) {
   }
 }
 
-#prediction_with = potential_with(c(1:19), clim_data)
-#prediction_without = potential_without(c(1:19), clim_data)
 
-require('maps')
-par(mfrow=c(1,3))
-map('usa')
-points(x=fia_db$LON[which(fia_db_with_Bins[, data_name]==T), ], 
-       y=fia_db$LAT[which(fia_db_with_Bins[, data_name]==T), ])
-require('graphics')
-#text(-100, 40,"this is the map of USA",xpd=T)
-mtext(" Eastern White Pine (Species 125) distribution", side=1)
-
-
-map('usa')
-points(x=fia_db$LON[which(prediction_with == T)], 
-       y=fia_db$LAT[which(prediction_with == T)])
-require('graphics')
-#text(-100, 40,"this is the map of USA",xpd=T)
-mtext("Model 'With interactions'", side=1)
-
-
-map('usa')
-points(x=fia_db$LON[which(prediction_without == T)], 
-       y=fia_db$LAT[which(prediction_without == T)])
-require('graphics')
-#text(-100, 40,"this is the map of USA",xpd=T)
-mtext("Model 'Without interactions'", side=1)
-
-pdf('comparison.pdf', height=12, width=12)
+pdf('comparison_125.pdf', height=12, width=12)
 par(mfrow=c(2,2))
 barplot_shapley(shapleys_WITH_resampled, bootstrap_n = 1000)
 title('Model WITH interaction, resampled approximation')
